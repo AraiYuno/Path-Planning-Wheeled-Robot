@@ -50,9 +50,12 @@ class CellDecomposition:
         return sum
 
 class QuadTreeDecomposition(CellDecomposition):
-    def __init__(self, domain, minimumSize):
+    def __init__(self, domain, minimumSize, initial, goals):
+        self.initialCell = initial
+        self.goalsCell = goals
         super().__init__(domain, minimumSize)
         self.root = self.Decompose(self.root)
+
 
     def Decompose(self, node):
         cell = 'free'
@@ -62,6 +65,8 @@ class QuadTreeDecomposition(CellDecomposition):
         rwidth = r.width
         rheight = r.height
 
+        initialCell = Rectangle(self.initialCell[0], self.initialCell[1], 0.1, 0.1)
+        goalCell = Rectangle(self.goalsCell[0][0], self.goalsCell[0][1], 0.1, 0.1)
         for o in self.domain.obstacles:
             if ( o.CalculateOverlap(r) >= rwidth * rheight ):
                 cell = 'obstacle'
@@ -70,7 +75,8 @@ class QuadTreeDecomposition(CellDecomposition):
                 cell = 'mixed'
                 break
         if ( cell == 'mixed'):
-            if (rwidth / 2.0 > self.minimumSize) and (rheight / 2.0 > self.minimumSize):
+            if (((rwidth / 2.0 > self.minimumSize) and (rheight / 2.0 > self.minimumSize))
+                    or goalCell.CalculateOverlap(r) > 0.0 or initialCell.CalculateOverlap(r) > 0.0):
                 childt1 = [Rectangle(rx, ry, rwidth/2.0, rheight/2.0), 'unknown', [] ]
                 qchild1 = self.Decompose( childt1 )
                 childt2 = [Rectangle(rx + rwidth/2.0, ry, rwidth/2.0, rheight/2.0), 'unknown', [] ]
@@ -88,7 +94,7 @@ class QuadTreeDecomposition(CellDecomposition):
 
 
 class BinarySpacePartitioning(CellDecomposition):
-    def __init__(self, domain, minimumSize ):
+    def __init__(self, domain, minimumSize):
         super().__init__(domain, minimumSize)
         self.root = self.Decompose(self.root)
 
@@ -190,7 +196,7 @@ def main( argv = None ):
         g = plt.Rectangle((g[0],g[1]), 0.1, 0.1, facecolor='#00ff00')
         ax.add_patch(g)
 
-    qtd = QuadTreeDecomposition(pp, 0.2)
+    qtd = QuadTreeDecomposition(pp, 0.2, initial, goals)
     qtd.Draw(ax)
     n = qtd.CountCells()
     ax.set_title('Quadtree Decomposition\n{0} cells'.format(n))

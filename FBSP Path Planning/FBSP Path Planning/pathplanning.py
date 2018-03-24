@@ -63,7 +63,7 @@ class PathPlanningProblem:
                 w = self.width - x
             if ( y + h ) > self.height:
                 h = self.height - y
-            obs = Obstacle(x,y, w, h, '#808080')
+            obs = Obstacle(x, y, w, h, '#808080')
             found = False
             for o in obstacles:
                 if ( o.CalculateOverlap(obs) > 0.0 ):
@@ -119,5 +119,3 @@ class PathPlanningProblem:
             j = int(p[0]/dim)
             counts[j][i] = counts[j][i] + 1
         return (x,y,counts)
-
-
