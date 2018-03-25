@@ -28,7 +28,7 @@ class CellDecomposition:
                 color = '#5050ff'
                 r.set_fill(True)
                 r.set_facecolor(color)
-            #elif node[1] == 'path':        # Fill the path with a certain colour 
+            #elif node[1] == 'path':        # Fill the path with a certain colour
             #   color = 'ffffff'
             #   r.set_fill(True)
             #   r.set_facecolor(color)
