@@ -1,11 +1,9 @@
-__author__ = 'Jacky Baltes <jacky@cs.umanitoba.ca>'
-
 import sys
 import matplotlib.pyplot as plt
-import numpy as np
 import math
 import copy
 from pathplanning import PathPlanningProblem, Rectangle
+from aStar import AStarSearch
 
 class CellDecomposition:
     def __init__(self, domain, minimumSize):
@@ -14,22 +12,26 @@ class CellDecomposition:
         self.root = [Rectangle(0.0, 0.0, domain.width, domain.height), 'unknown', []]
 
     def Draw(self, ax, node = None):
-            if ( node == None ):
+            if node == None:
                 node = self.root
             r = plt.Rectangle((node[0].x, node[0].y), node[0].width, node[0].height, fill=False, facecolor=None, alpha=0.5)
-            if ( node[1] == 'mixed' ):
+            if node[1] == 'mixed':
                 color = '#5080ff'
-                if ( node[2] == [] ):
+                if node[2] == []:
                     r.set_fill(True)
                     r.set_facecolor(color)
-            elif ( node[1] == 'free' ):
+            elif node[1] == 'free':
                 color = '#ffff00'
                 r.set_fill(True)
                 r.set_facecolor(color)
-            elif ( node[1] == 'obstacle'):
+            elif node[1] == 'obstacle':
                 color = '#5050ff'
                 r.set_fill(True)
                 r.set_facecolor(color)
+            #elif node[1] == 'path':        # Fill the path with a certain colour 
+            #   color = 'ffffff'
+            #   r.set_fill(True)
+            #   r.set_facecolor(color)
             else:
                 print("Error: don't know how to draw cell of type", node[1])
             #print('Draw node', node)
@@ -55,6 +57,8 @@ class QuadTreeDecomposition(CellDecomposition):
         self.goalsCell = goals
         super().__init__(domain, minimumSize)
         self.root = self.Decompose(self.root)
+        self.astar = AStarSearch(self.root, Rectangle(self.initialCell[0], self.initialCell[1], 0.1, 0.1),
+                                 Rectangle(self.goalsCell[0][0], self.goalsCell[0][1], 0.1, 0.1))
 
 
     def Decompose(self, node):
@@ -183,17 +187,17 @@ def main( argv = None ):
     initial, goals = pp.CreateProblemInstance()
 
     fig = plt.figure()
-    ax = fig.add_subplot(1,2,1, aspect='equal')
+    ax = fig.add_subplot(1, 2, 1, aspect='equal')
     ax.set_xlim(0.0, width)
     ax.set_ylim(0.0, height)
 
     for o in pp.obstacles:
         ax.add_patch(copy.copy(o.patch) )
-    ip = plt.Rectangle((initial[0],initial[1]), 0.1, 0.1, facecolor='#ff0000')
+    ip = plt.Rectangle((initial[0], initial[1]), 0.1, 0.1, facecolor='#ff0000')
     ax.add_patch(ip)
 
     for g in goals:
-        g = plt.Rectangle((g[0],g[1]), 0.1, 0.1, facecolor='#00ff00')
+        g = plt.Rectangle((g[0], g[1]), 0.1, 0.1, facecolor='#00ff00')
         ax.add_patch(g)
 
     qtd = QuadTreeDecomposition(pp, 0.2, initial, goals)
@@ -201,7 +205,7 @@ def main( argv = None ):
     n = qtd.CountCells()
     ax.set_title('Quadtree Decomposition\n{0} cells'.format(n))
 
-    ax = fig.add_subplot(1,2,2, aspect='equal')
+    ax = fig.add_subplot(1, 2, 2, aspect='equal')
     ax.set_xlim(0.0, width)
     ax.set_ylim(0.0, height)
 
