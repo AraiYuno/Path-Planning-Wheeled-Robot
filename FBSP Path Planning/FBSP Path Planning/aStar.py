@@ -1,3 +1,5 @@
+# Author: Kyle Ahn
+
 from pathplanning import PathPlanningProblem, Rectangle
 
 class AStarSearch:
@@ -6,6 +8,7 @@ class AStarSearch:
         self.initial_rectangle = initial_rectangle
         self.goal_rectangle = goal_rectangle
         self.initial_node = self.find_node(self.root, self.initial_rectangle)
+        self.generate_neighbour_nodes(self.initial_node)
 
 
     #=================================================================================================
@@ -22,8 +25,9 @@ class AStarSearch:
         for i in range(0, len(children_nodes)):
             if children_nodes[i][0].CalculateOverlap(rectangle) > 0.0:
                 to_return = self.find_node(children_nodes[i], rectangle)
-        print("Initial Node's Rectangle: ", to_return[0].x, ", ", to_return[0].y, " width: ", to_return[0].width, ", height: "
-              , to_return[0].height)
+        #print("Initial Node's Rectangle: ", to_return[0].x, ", ", to_return[0].y, " width: ", to_return[0].width,
+        #      ", height: "
+        #      , to_return[0].height)
         return to_return
 
 
@@ -41,7 +45,7 @@ class AStarSearch:
             if curr == goal_node:
                 return self.reconstruct_path(curr)
 
-            neighbour_nodes = self.generate_neighour_nodes(curr)
+            neighbour_nodes = self.generate_neighbour_nodes(curr)
             for i in range(0, len(neighbour_nodes)):
                 # if neighbour is obstacle, we just ignore. Nothing to care about it.
                 if neighbour_nodes[i][1] == "obstacle":
@@ -63,8 +67,67 @@ class AStarSearch:
                         neighbour_nodes[i][3] = new_cost
                         neighbour_nodes[i][4] = self.get_distance(neighbour_nodes[i], goal_node)
                         neighbour_nodes[i][5] = curr
-
             closed_nodes.append(curr)
+
+
+
+    # =================================================================================================
+    #  generate_neighour_nodes(curr)
+    #  - Generates the neighbour nodes and returns the list of the neighbours to the current cell.
+    #  - it returns up to 8 neighbours.
+    # =================================================================================================
+    def generate_neighbour_nodes(self, curr):
+        to_return = []
+        x = curr[0].x
+        y = curr[0].y
+        width = curr[0].width
+        height = curr[0].height
+        north_neighbour = self.find_neighbour_node(self.root, Rectangle(x, y + height, width, height)) # north
+        if north_neighbour is not None:
+            to_return.append(north_neighbour)
+        northeast_neighbour = self.find_neighbour_node(self.root, Rectangle(x + width, y + height, width, height)) # northeast
+        if northeast_neighbour is not None:
+            to_return.append(northeast_neighbour)
+        east_neighbour = self.find_neighbour_node(self.root, Rectangle(x + width, y, width, height)) # east
+        if east_neighbour is not None:
+            to_return.append(east_neighbour)
+        southeast_neighbour = self.find_neighbour_node(self.root, Rectangle(x + width, y - height, width, height)) #southeast
+        if southeast_neighbour is not None:
+            to_return.append(southeast_neighbour)
+        south_neighbour = self.find_neighbour_node(self.root, Rectangle(x, y - height, width, height)) #south
+        if south_neighbour is not None:
+            to_return.append(south_neighbour)
+        southwest_neighbour = self.find_neighbour_node(self.root, Rectangle(x - width, y - height, width, height)) #southwest
+        if southwest_neighbour is not None:
+            to_return.append(southwest_neighbour)
+        west_neighbour = self.find_neighbour_node(self.root, Rectangle(x - width, y, width, height)) #west
+        if west_neighbour is not None:
+            to_return.append(west_neighbour)
+        northwest_neighbour = self.find_neighbour_node(self.root, Rectangle(x - width, y + height, width, height)) #northwest
+        if northwest_neighbour is not None:
+            to_return.append(northwest_neighbour)
+        print( "How many neighbours? ", len(to_return))
+
+
+
+    # =================================================================================================
+    #  find_neighbour_nodes(node, rectangle)
+    #  - finds the node of given rectangle
+    #  - It uses root node to find that specific node.
+    # =================================================================================================
+    def find_neighbour_node(self, node, rectangle):
+        to_return = None
+        if node[0].x == rectangle.x and node[0].y == rectangle.y and node[0].width == rectangle.width and node[0].height == rectangle.height:
+            return node
+        children_nodes = node[2]
+        for i in range(0, len(children_nodes)):
+            if children_nodes[i][0].CalculateOverlap(rectangle) > 0.0:
+                to_return = self.find_neighbour_node(children_nodes[i], rectangle)
+        #if to_return is not None:
+            #print("Top Node's Rectangle: ", to_return[0].x, ", ", to_return[0].y, " width: ", to_return[0].width, ", height: "
+            #       , to_return[0].height)
+        return to_return
+
 
 
 
@@ -84,7 +147,12 @@ class AStarSearch:
 
     # =================================================================================================
     #  reconstruct_path( self, curr )
-    #  - Takes in a goal node.
-    #  - If curr exists in the list, it returns the index in the list, otherwise -9999
+    #  - Returns a list of nodes with the path to the goal.
     # =================================================================================================
     def reconstruct_path(self, curr):
+        to_return = []
+        while curr[5] is not None:
+            to_return.append(curr)
+            curr = curr[5]
+        return to_return
+
