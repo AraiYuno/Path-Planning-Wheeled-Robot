@@ -57,8 +57,6 @@ class QuadTreeDecomposition(CellDecomposition):
         self.goalsCell = goals
         super().__init__(domain, minimumSize)
         self.root = self.Decompose(self.root)
-        self.astar = AStarSearch(self.root, Rectangle(self.initialCell[0], self.initialCell[1], 0.1, 0.1),
-                                 Rectangle(self.goalsCell[0][0], self.goalsCell[0][1], 0.1, 0.1))
 
 
     def Decompose(self, node):
@@ -209,6 +207,7 @@ def main( argv = None ):
     ax.set_xlim(0.0, width)
     ax.set_ylim(0.0, height)
 
+
     for o in pp.obstacles:
         ax.add_patch(copy.copy(o.patch))
     ip = plt.Rectangle((initial[0],initial[1]), 0.1, 0.1, facecolor='#ff0000')
@@ -224,6 +223,8 @@ def main( argv = None ):
     ax.set_title('BSP Decomposition\n{0} cells'.format(n))
 
     plt.show()
+    astar = AStarSearch(qtd.domain, qtd.root, Rectangle(qtd.initialCell[0], qtd.initialCell[1], 0.1, 0.1),
+                             Rectangle(qtd.goalsCell[0][0], qtd.goalsCell[0][1], 0.1, 0.1))
 
 if ( __name__ == '__main__' ):
     main()
