@@ -103,19 +103,13 @@ class AStarSearch:
     # =================================================================================================
     def calculate_g_cost(self, src, dest):
         # if the destination's x and y are within the source node, we consider the case 2.
-        to_return = 0
-        if src[0].x + src[0].height > dest[0].x and src[0].y + src[0].height > dest[0].y:
-            if src[0].x == dest[0].x and src[0].y == dest[0].y:   # bottom left cell
-                to_return = -src[0].width/2 - src[0].height/2
-            if src[0].x == dest[0].x and src[0].y != dest[0].y:   # top left cell
-                to_return = -src[0].height/2
-            if src[0].x != dest[0].x and src[0].y == dest[0].y:   # bottom right cell
-                to_return = -src[0].width/2
-            if src[0].x != dest[0].x and src[0].y != dest[0].y:   # top right cell
-                to_return = 0
-        else:  # else if the destination's x and y are outside the source node, we consider the case 1
-            to_return = math.sqrt((dest[0].x - src[0].x)*(dest[0].x - src[0].x) + (dest[0].y - src[0].y)*(dest[0].y - src[0].y))
-        return 3*to_return
+        src_x_center = src[0].x+(src[0].width)/2
+        src_y_center = src[0].y+(src[0].height)/2
+        dest_x_center = dest[0].x + (dest[0].width) / 2
+        dest_y_center = dest[0].y + (dest[0].height) / 2
+
+        g_cost = math.sqrt(math.pow(dest_x_center-src_x_center, 2) + math.pow(dest_y_center-src_y_center, 2) )
+        return g_cost
 
 
     # =================================================================================================
@@ -127,42 +121,42 @@ class AStarSearch:
         return math.sqrt((goal[0].x - curr[0].x)*(goal[0].x - curr[0].x) + (goal[0].y - curr[0].y)*(goal[0].y - curr[0].y))
 
 
-    # =================================================================================================
-    #  generate_neighour_nodes(curr)
-    #  - Generates the neighbour nodes and returns the list of the neighbours to the current cell.
-    #  - it returns up to 8 neighbours.
-    # =================================================================================================
-    def generate_neighbour_nodes(self, curr):
-        to_return = []
-        x = curr[0].x
-        y = curr[0].y
-        width = curr[0].width
-        height = curr[0].height
-        north_neighbour = self.find_neighbour_node(self.root, Rectangle(x, y + height, width, height)) # north
-        if north_neighbour is not None:
-            to_return.append(north_neighbour)
-        northeast_neighbour = self.find_neighbour_node(self.root, Rectangle(x + width, y + height, width, height)) # northeast
-        if northeast_neighbour is not None:
-            to_return.append(northeast_neighbour)
-        east_neighbour = self.find_neighbour_node(self.root, Rectangle(x + width, y, width, height)) # east
-        if east_neighbour is not None:
-            to_return.append(east_neighbour)
-        southeast_neighbour = self.find_neighbour_node(self.root, Rectangle(x + width, y - height, width, height)) #southeast
-        if southeast_neighbour is not None:
-            to_return.append(southeast_neighbour)
-        south_neighbour = self.find_neighbour_node(self.root, Rectangle(x, y - height, width, height)) #south
-        if south_neighbour is not None:
-            to_return.append(south_neighbour)
-        southwest_neighbour = self.find_neighbour_node(self.root, Rectangle(x - width, y - height, width, height)) #southwest
-        if southwest_neighbour is not None:
-            to_return.append(southwest_neighbour)
-        west_neighbour = self.find_neighbour_node(self.root, Rectangle(x - width, y, width, height)) #west
-        if west_neighbour is not None:
-            to_return.append(west_neighbour)
-        northwest_neighbour = self.find_neighbour_node(self.root, Rectangle(x - width, y + height, width, height)) #northwest
-        if northwest_neighbour is not None:
-            to_return.append(northwest_neighbour)
-        return to_return
+    # # =================================================================================================
+    # #  generate_neighour_nodes(curr)
+    # #  - Generates the neighbour nodes and returns the list of the neighbours to the current cell.
+    # #  - it returns up to 8 neighbours.
+    # # =================================================================================================
+    # def generate_neighbour_nodes(self, curr):
+    #     to_return = []
+    #     x = curr[0].x
+    #     y = curr[0].y
+    #     width = curr[0].width
+    #     height = curr[0].height
+    #     north_neighbour = self.find_neighbour_node(self.root, Rectangle(x, y + height, width, height)) # north
+    #     if north_neighbour is not None:
+    #         to_return.append(north_neighbour)
+    #     northeast_neighbour = self.find_neighbour_node(self.root, Rectangle(x + width, y + height, width, height)) # northeast
+    #     if northeast_neighbour is not None:
+    #         to_return.append(northeast_neighbour)
+    #     east_neighbour = self.find_neighbour_node(self.root, Rectangle(x + width, y, width, height)) # east
+    #     if east_neighbour is not None:
+    #         to_return.append(east_neighbour)
+    #     southeast_neighbour = self.find_neighbour_node(self.root, Rectangle(x + width, y - height, width, height)) #southeast
+    #     if southeast_neighbour is not None:
+    #         to_return.append(southeast_neighbour)
+    #     south_neighbour = self.find_neighbour_node(self.root, Rectangle(x, y - height, width, height)) #south
+    #     if south_neighbour is not None:
+    #         to_return.append(south_neighbour)
+    #     southwest_neighbour = self.find_neighbour_node(self.root, Rectangle(x - width, y - height, width, height)) #southwest
+    #     if southwest_neighbour is not None:
+    #         to_return.append(southwest_neighbour)
+    #     west_neighbour = self.find_neighbour_node(self.root, Rectangle(x - width, y, width, height)) #west
+    #     if west_neighbour is not None:
+    #         to_return.append(west_neighbour)
+    #     northwest_neighbour = self.find_neighbour_node(self.root, Rectangle(x - width, y + height, width, height)) #northwest
+    #     if northwest_neighbour is not None:
+    #         to_return.append(northwest_neighbour)
+    #     return to_return
 
 
     # =================================================================================================
@@ -299,7 +293,7 @@ class AStarSearch:
             minY2 = self.leaf_nodes[i].y
             maxX2 = self.leaf_nodes[i].x + self.leaf_nodes[i].width
             maxY2 = self.leaf_nodes[i].y + self.leaf_nodes[i].height
-            if( maxX1 > minX2 and minX1 < maxX2 and maxY1 > minY1 and minY1 < maxY2 ):
+            if( maxX1 > minX2 and minX1 < maxX2 and maxY1 > minY2 and minY1 < maxY2):
                 neighbours.append(self.leaf_nodes[i])
 
         return neighbours
