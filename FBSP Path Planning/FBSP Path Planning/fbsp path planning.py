@@ -2,6 +2,7 @@ import sys
 import matplotlib.pyplot as plt
 import math
 import copy
+import timeit
 from pathplanning import PathPlanningProblem, Rectangle
 from aStar import AStarSearch
 
@@ -180,7 +181,7 @@ def main( argv = None ):
     width = 100.0
     height = 100.0
 
-    pp = PathPlanningProblem( width, height, 20, 30, 30)
+    pp = PathPlanningProblem( width, height, 15, 30, 30)
     #pp.obstacles = [ Obstacle(0.0, 0.0, pp.width, pp.height / 2.2, '#555555' ) ]
     initial, goals = pp.CreateProblemInstance()
 
@@ -202,8 +203,12 @@ def main( argv = None ):
     qtd.Draw(ax)
     n = qtd.CountCells()
 
+    start = timeit.default_timer()
     astar = AStarSearch(qtd.domain, qtd.root, Rectangle(qtd.initialCell[0], qtd.initialCell[1], 0.1, 0.1),
                         Rectangle(qtd.goalsCell[0][0], qtd.goalsCell[0][1], 0.1, 0.1))
+    stop = timeit.default_timer()
+    print("A* Running Time: ", stop - start)
+    print("A* Path Length : ", astar.path_length)
     plt.plot([x for (x, y) in astar.path], [y for (x, y) in astar.path], '-')
     ax.set_title('Quadtree Decomposition\n{0} cells'.format(n))
 

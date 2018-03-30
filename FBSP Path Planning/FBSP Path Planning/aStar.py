@@ -18,6 +18,7 @@ class AStarSearch:
         self.leaf_nodes = []
         self.generate_leaf_nodes(self.root)
         self.path = self.find_path(self.initial_node, self.goal_node)
+        self.path_length = self.calculate_path_length(self.path)
 
 
 
@@ -35,9 +36,6 @@ class AStarSearch:
         for i in range(0, len(children_nodes)):
             if children_nodes[i][0].CalculateOverlap(rectangle) > 0.0:
                 to_return = self.find_node(children_nodes[i], rectangle)
-        #print("Initial Node's Rectangle: ", to_return[0].x, ", ", to_return[0].y, " width: ", to_return[0].width,
-        #      ", height: "
-        #      , to_return[0].height)
         return to_return
 
 
@@ -55,7 +53,7 @@ class AStarSearch:
             open_nodes.remove(curr)
             #print("X: ", curr[0].x, ", Y: ", curr[0].y, ", W: ", curr[0].width, ", H: ", curr[0].height)
             if goal_node[0].CalculateOverlap(curr[0]) or curr[0].CalculateOverlap(goal_node[0]):                               # base case.
-                print("GOAL?")
+                print("A* Found the Goal")
                 return self.reconstruct_path(curr)
                                                                 # 2 cases for generating neighbour nodes.                                             # Case 2: if cur is not mixed, then we just retrieve
             neighbour_nodes = self.generate_neighbours(curr)   # the neighbour nodes from curr position.
@@ -77,12 +75,6 @@ class AStarSearch:
                         neighbour_nodes[i][4] = self.calculate_h_cost(neighbour_nodes[i], goal_node)
                         neighbour_nodes[i][5] = curr
             closed_nodes.append(curr)
-
-
-    def check_neighbour_cost(self, neighbours):
-        for i in range(0, len(neighbours)):
-            x = neighbours[i]
-            print("Neighbour ", i, "- F: ", neighbours[i][3]+neighbours[i][4])
 
 
     # =================================================================================================
@@ -114,78 +106,6 @@ class AStarSearch:
 
 
     # =================================================================================================
-    #  find_neighbour_nodes(node, rectangle)
-    #  - finds the node of given rectangle
-    #  - It uses root node to find that specific node.
-    # =================================================================================================
-    def find_neighbour_node(self, node, rectangle):
-        to_return = None
-        if (node[0].x == rectangle.x and node[0].y == rectangle.y and node[0].width == rectangle.width and\
-                node[0].height == rectangle.height) or (node[0].x + node[0].width == rectangle.x):
-            return node
-        children_nodes = node[2]
-        for i in range(0, len(children_nodes)):
-            if children_nodes[i][0].CalculateOverlap(rectangle) > 0.0:
-                to_return = self.find_neighbour_node(children_nodes[i], rectangle)
-        # if to_return is not None:
-        # print("Top Node's Rectangle: ", to_return[0].x, ", ", to_return[0].y, " width: ", to_return[0].width, ", height: "
-        #       , to_return[0].height)
-        return to_return
-
-
-    # =================================================================================================
-    #  divie_node(node)
-    #  - Divides the input node in 4 cells like a quadtree.
-    # =================================================================================================
-    def divide_node(self, node):
-        # First we divide the current node's rectangle into 4.
-        to_return = []
-        rectangle = node[0]
-        x = rectangle.x
-        y = rectangle.y
-        w = rectangle.width
-        h = rectangle.height
-        # Create 4 smaller rectangles.
-        topleft = [Rectangle(x, y + h/2, w/2, h/2), 'free', []]
-        botleft = [Rectangle(x, y, w/2, h/2), 'free', []]
-        botright = [Rectangle(x + w/2, y, w/2, h/2), 'free', []]
-        topright = [Rectangle(x + w/2, y + h/2, w/2, h/2), 'free', []]
-        to_return.append(topleft)
-        to_return.append(botleft)
-        to_return.append(botright)
-        to_return.append(topright)
-        for o in self.domain.obstacles:
-            if o.CalculateOverlap(topleft[0]) >= (h/2) * (w/2):
-                to_return[0][1] = 'obstacle'
-                break
-            elif o.CalculateOverlap(topleft[0]) > 0.0:
-                to_return[0][1] = 'mixed'
-                break
-        for o in self.domain.obstacles:
-            if o.CalculateOverlap(botleft[0]) >= (h/2) * (w/2):
-                to_return[1][1] = 'obstacle'
-                break
-            elif o.CalculateOverlap(botleft[0]) > 0.0:
-                to_return[1][1] = 'mixed'
-                break
-        for o in self.domain.obstacles:
-            if o.CalculateOverlap(botright[0]) >= (h/2) * (w/2):
-                to_return[2][1] = 'obstacle'
-                break
-            elif o.CalculateOverlap(botright[0]) > 0.0:
-                to_return[2][1] = 'mixed'
-                break
-        for o in self.domain.obstacles:
-            if o.CalculateOverlap(topright[0]) >= (h/2) * (w/2):
-                to_return[3][1] = 'obstacle'
-                break
-            elif o.CalculateOverlap(topright[0]) > 0.0:
-                to_return[3][1] = 'mixed'
-                break
-        return to_return
-
-
-    # =================================================================================================
     #  Priority_remove(node_list)
     #  - returns the node with the most promising(lowest) f cost.
     # =================================================================================================
@@ -214,7 +134,7 @@ class AStarSearch:
 
     # =================================================================================================
     #  reconstruct_path( self, curr )
-    #  - Returns a list of nodes with the path to the goal.
+    #  - Returns a list of [x,y] with the path to the goal.
     # =================================================================================================
     def reconstruct_path(self, curr):
         to_return = []
@@ -226,6 +146,21 @@ class AStarSearch:
         return to_return
 
 
+    # =================================================================================================
+    #  calculate_path_length
+    #  - returns the length of the path from the initial point to the goal point
+    # =================================================================================================
+    def calculate_path_length(self, path):
+        length = 0
+        for i in range(1, len(path)):
+            length += math.sqrt(math.pow(path[i][0] - path[i-1][0], 2) + math.pow(path[i][1] - path[i-1][1], 2))
+        return length
+
+
+    # =================================================================================================
+    #  generate_leaf_nodes
+    #  - takes in the root node as a parameter and stores all the free leaf nodes in "leaf_nodes" list
+    # =================================================================================================
     def generate_leaf_nodes(self, node):
         if node[1] == "free":
             self.leaf_nodes.append(node)
@@ -236,6 +171,11 @@ class AStarSearch:
             self.generate_leaf_nodes(node[2][3])
 
 
+    # =================================================================================================
+    #  generate_neighbours
+    #  - Using AABB algorithm, we are detecting the neighbour rectangles that are interacting with
+    #    the current rectangle.
+    # =================================================================================================
     def generate_neighbours(self, curr):
         neighbours = []
         minX1 = curr[0].x - 0.1
