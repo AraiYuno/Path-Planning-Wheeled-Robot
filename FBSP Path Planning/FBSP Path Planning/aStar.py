@@ -15,8 +15,10 @@ class AStarSearch:
         self.initial_node.append(0)
         self.initial_node.append(self.calculate_h_cost(self.root, self.goal_node))
         self.initial_node.append(None)
-        self.find_path(self.initial_node, self.goal_node)
         self.leaf_nodes = []
+        self.generate_leaf_nodes(self.root)
+        self.path = self.find_path(self.initial_node, self.goal_node)
+
 
 
     #=================================================================================================
@@ -51,23 +53,13 @@ class AStarSearch:
         while len(open_nodes) > 0:
             curr = self.priority_remove(open_nodes)             # we get a node with the most promising f cost
             open_nodes.remove(curr)
-            print("X: ", curr[0].x, ", Y: ", curr[0].y, ", W: ", curr[0].width, ", H: ", curr[0].height)
+            #print("X: ", curr[0].x, ", Y: ", curr[0].y, ", W: ", curr[0].width, ", H: ", curr[0].height)
             if goal_node[0].CalculateOverlap(curr[0]) or curr[0].CalculateOverlap(goal_node[0]):                               # base case.
                 print("GOAL?")
                 return self.reconstruct_path(curr)
-                                                                # 2 cases for generating neighbour nodes.
-            if curr[1] == "mixed":                              # Case 1: if curr is mixed, we divide the curr node
-                print("isMixed")
-                neighbour_nodes = self.divide_node(curr)        #         so that we can identify the free space
-            else:                                               # Case 2: if cur is not mixed, then we just retrieve
-                neighbour_nodes = self.generate_neighbour_nodes(curr)   # the neighbour nodes from curr position.
-                print("Not Mixed")
-
-            print("Length of neighour_nodes: ", len(neighbour_nodes))
+                                                                # 2 cases for generating neighbour nodes.                                             # Case 2: if cur is not mixed, then we just retrieve
+            neighbour_nodes = self.generate_neighbours(curr)   # the neighbour nodes from curr position.
             for i in range(0, len(neighbour_nodes)):
-                # if neighbour is obstacle, we just ignore. Nothing to care about it.
-                if neighbour_nodes[i][1] == "obstacle":
-                    continue
                 # if neighbour node is not in the open_nodes nor in closed_nodes, we calculate new G and H cost for the
                 # neighbour node and add it as a children of the curr node.
                 if self.exists(neighbour_nodes[i], open_nodes) == -9999 and self.exists(neighbour_nodes[i], closed_nodes) == -9999:
@@ -80,7 +72,7 @@ class AStarSearch:
                 # if the neighbour already exists in the open_nodes list, then we update the cost
                 if self.exists(open_nodes, neighbour_nodes[i]) != -9999:
                     new_cost = curr[3] + self.calculate_g_cost(curr, neighbour_nodes[i])
-                    if new_cost < neighbour_nodes[3]:
+                    if new_cost < neighbour_nodes[i][3]:
                         neighbour_nodes[i][3] = new_cost
                         neighbour_nodes[i][4] = self.calculate_h_cost(neighbour_nodes[i], goal_node)
                         neighbour_nodes[i][5] = curr
@@ -119,44 +111,6 @@ class AStarSearch:
     # =================================================================================================
     def calculate_h_cost(self, curr, goal):
         return math.sqrt((goal[0].x - curr[0].x)*(goal[0].x - curr[0].x) + (goal[0].y - curr[0].y)*(goal[0].y - curr[0].y))
-
-
-    # # =================================================================================================
-    # #  generate_neighour_nodes(curr)
-    # #  - Generates the neighbour nodes and returns the list of the neighbours to the current cell.
-    # #  - it returns up to 8 neighbours.
-    # # =================================================================================================
-    # def generate_neighbour_nodes(self, curr):
-    #     to_return = []
-    #     x = curr[0].x
-    #     y = curr[0].y
-    #     width = curr[0].width
-    #     height = curr[0].height
-    #     north_neighbour = self.find_neighbour_node(self.root, Rectangle(x, y + height, width, height)) # north
-    #     if north_neighbour is not None:
-    #         to_return.append(north_neighbour)
-    #     northeast_neighbour = self.find_neighbour_node(self.root, Rectangle(x + width, y + height, width, height)) # northeast
-    #     if northeast_neighbour is not None:
-    #         to_return.append(northeast_neighbour)
-    #     east_neighbour = self.find_neighbour_node(self.root, Rectangle(x + width, y, width, height)) # east
-    #     if east_neighbour is not None:
-    #         to_return.append(east_neighbour)
-    #     southeast_neighbour = self.find_neighbour_node(self.root, Rectangle(x + width, y - height, width, height)) #southeast
-    #     if southeast_neighbour is not None:
-    #         to_return.append(southeast_neighbour)
-    #     south_neighbour = self.find_neighbour_node(self.root, Rectangle(x, y - height, width, height)) #south
-    #     if south_neighbour is not None:
-    #         to_return.append(south_neighbour)
-    #     southwest_neighbour = self.find_neighbour_node(self.root, Rectangle(x - width, y - height, width, height)) #southwest
-    #     if southwest_neighbour is not None:
-    #         to_return.append(southwest_neighbour)
-    #     west_neighbour = self.find_neighbour_node(self.root, Rectangle(x - width, y, width, height)) #west
-    #     if west_neighbour is not None:
-    #         to_return.append(west_neighbour)
-    #     northwest_neighbour = self.find_neighbour_node(self.root, Rectangle(x - width, y + height, width, height)) #northwest
-    #     if northwest_neighbour is not None:
-    #         to_return.append(northwest_neighbour)
-    #     return to_return
 
 
     # =================================================================================================
@@ -232,7 +186,7 @@ class AStarSearch:
 
 
     # =================================================================================================
-    #  riority_remove(node_list)
+    #  Priority_remove(node_list)
     #  - returns the node with the most promising(lowest) f cost.
     # =================================================================================================
     def priority_remove(self, node_list):
@@ -264,36 +218,36 @@ class AStarSearch:
     # =================================================================================================
     def reconstruct_path(self, curr):
         to_return = []
+        to_return.append([self.goal_rectangle.x + self.goal_rectangle.width/2, self.goal_rectangle.y + self.goal_rectangle.height/2])
         while curr[5] is not None:
-            to_return.append(curr)
+            to_return.append([curr[0].x + curr[0].width/2, curr[0].y + curr[0].height/2])
             curr = curr[5]
+        to_return.append([self.initial_rectangle.x + self.initial_rectangle.width/2, self.initial_rectangle.y + self.initial_rectangle.height/2])
         return to_return
 
 
     def generate_leaf_nodes(self, node):
-        if(len(node)==2):
-            if(node[1]=="free"):
-                self.leaf_nodes.append(node)
-
-        else:
-            self.generate_leaf_nodes(self, node[3][0])
-            self.generate_leaf_nodes(self, node[3][1])
-            self.generate_leaf_nodes(self, node[3][2])
-            self.generate_leaf_nodes(self, node[3][3])
+        if node[1] == "free":
+            self.leaf_nodes.append(node)
+        elif len(node[2]) != 0:
+            self.generate_leaf_nodes(node[2][0])
+            self.generate_leaf_nodes(node[2][1])
+            self.generate_leaf_nodes(node[2][2])
+            self.generate_leaf_nodes(node[2][3])
 
 
     def generate_neighbours(self, curr):
         neighbours = []
-        minX1 = curr.x - 0.1
-        minY1 = curr.y - 0.1
-        maxX1 = curr.x +curr.width + 0.1
-        maxY1 = curr.y + curr.height + 0.1
-        for i in len(self.leaf_nodes):
-            minX2 = self.leaf_nodes[i].x
-            minY2 = self.leaf_nodes[i].y
-            maxX2 = self.leaf_nodes[i].x + self.leaf_nodes[i].width
-            maxY2 = self.leaf_nodes[i].y + self.leaf_nodes[i].height
-            if( maxX1 > minX2 and minX1 < maxX2 and maxY1 > minY2 and minY1 < maxY2):
+        minX1 = curr[0].x - 0.1
+        minY1 = curr[0].y - 0.1
+        maxX1 = curr[0].x + curr[0].width + 0.1
+        maxY1 = curr[0].y + curr[0].height + 0.1
+        for i in range(0, len(self.leaf_nodes)):
+            minX2 = self.leaf_nodes[i][0].x
+            minY2 = self.leaf_nodes[i][0].y
+            maxX2 = self.leaf_nodes[i][0].x + self.leaf_nodes[i][0].width
+            maxY2 = self.leaf_nodes[i][0].y + self.leaf_nodes[i][0].height
+            if maxX1 > minX2 and minX1 < maxX2 and maxY1 > minY2 and minY1 < maxY2:
                 neighbours.append(self.leaf_nodes[i])
 
         return neighbours

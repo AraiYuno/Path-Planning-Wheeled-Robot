@@ -177,10 +177,10 @@ def main( argv = None ):
     if ( argv == None ):
         argv = sys.argv[1:]
 
-    width = 10.0
-    height = 10.0
+    width = 100.0
+    height = 100.0
 
-    pp = PathPlanningProblem( width, height, 15, 3.0, 3.0)
+    pp = PathPlanningProblem( width, height, 20, 30, 30)
     #pp.obstacles = [ Obstacle(0.0, 0.0, pp.width, pp.height / 2.2, '#555555' ) ]
     initial, goals = pp.CreateProblemInstance()
 
@@ -191,16 +191,20 @@ def main( argv = None ):
 
     for o in pp.obstacles:
         ax.add_patch(copy.copy(o.patch) )
-    ip = plt.Rectangle((initial[0], initial[1]), 0.1, 0.1, facecolor='#ff0000')
+    ip = plt.Rectangle((initial[0], initial[1]), 1.0, 1.0, facecolor='#ff0000')
     ax.add_patch(ip)
 
     for g in goals:
-        g = plt.Rectangle((g[0], g[1]), 0.1, 0.1, facecolor='#00ff00')
+        g = plt.Rectangle((g[0], g[1]), 1.0, 1.0, facecolor='#00ff00')
         ax.add_patch(g)
 
     qtd = QuadTreeDecomposition(pp, 0.2, initial, goals)
     qtd.Draw(ax)
     n = qtd.CountCells()
+
+    astar = AStarSearch(qtd.domain, qtd.root, Rectangle(qtd.initialCell[0], qtd.initialCell[1], 0.1, 0.1),
+                        Rectangle(qtd.goalsCell[0][0], qtd.goalsCell[0][1], 0.1, 0.1))
+    plt.plot([x for (x, y) in astar.path], [y for (x, y) in astar.path], '-')
     ax.set_title('Quadtree Decomposition\n{0} cells'.format(n))
 
     ax = fig.add_subplot(1, 2, 2, aspect='equal')
@@ -221,10 +225,7 @@ def main( argv = None ):
     bsp.Draw(ax)
     n = bsp.CountCells()
     ax.set_title('BSP Decomposition\n{0} cells'.format(n))
-
     plt.show()
-    astar = AStarSearch(qtd.domain, qtd.root, Rectangle(qtd.initialCell[0], qtd.initialCell[1], 0.1, 0.1),
-                             Rectangle(qtd.goalsCell[0][0], qtd.goalsCell[0][1], 0.1, 0.1))
 
 if ( __name__ == '__main__' ):
     main()
