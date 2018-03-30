@@ -16,6 +16,7 @@ class AStarSearch:
         self.initial_node.append(self.calculate_h_cost(self.root, self.goal_node))
         self.initial_node.append(None)
         self.find_path(self.initial_node, self.goal_node)
+        self.leaf_nodes = []
 
 
     #=================================================================================================
@@ -273,4 +274,41 @@ class AStarSearch:
             to_return.append(curr)
             curr = curr[5]
         return to_return
+
+
+    def generate_leaf_nodes(self, node):
+        if(len(node)==2):
+            if(node[1]=="free"):
+                self.leaf_nodes.append(node)
+
+        else:
+            self.generate_leaf_nodes(self, node[3][0])
+            self.generate_leaf_nodes(self, node[3][1])
+            self.generate_leaf_nodes(self, node[3][2])
+            self.generate_leaf_nodes(self, node[3][3])
+
+
+    def generate_neighbours(self, curr):
+        neighbours = []
+        minX1 = curr.x - 0.1
+        minY1 = curr.y - 0.1
+        maxX1 = curr.x +curr.width + 0.1
+        maxY1 = curr.y + curr.height + 0.1
+        for i in len(self.leaf_nodes):
+            minX2 = self.leaf_nodes[i].x
+            minY2 = self.leaf_nodes[i].y
+            maxX2 = self.leaf_nodes[i].x + self.leaf_nodes[i].width
+            maxY2 = self.leaf_nodes[i].y + self.leaf_nodes[i].height
+            if( maxX1 > minX2 and minX1 < maxX2 and maxY1 > minY1 and minY1 < maxY2 ):
+                neighbours.append(self.leaf_nodes[i])
+
+        return neighbours
+
+
+
+
+
+
+
+
 
