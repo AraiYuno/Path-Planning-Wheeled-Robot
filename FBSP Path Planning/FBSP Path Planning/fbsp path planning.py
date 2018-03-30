@@ -5,6 +5,8 @@ import copy
 import timeit
 from pathplanning import PathPlanningProblem, Rectangle
 from aStar import AStarSearch
+from rrt import RRT
+
 
 class CellDecomposition:
     def __init__(self, domain, minimumSize):
@@ -96,84 +98,6 @@ class QuadTreeDecomposition(CellDecomposition):
         return node
 
 
-class BinarySpacePartitioning(CellDecomposition):
-    def __init__(self, domain, minimumSize):
-        super().__init__(domain, minimumSize)
-        self.root = self.Decompose(self.root)
-
-    def Entropy(self, p):
-        e = 0.0
-        if ( ( p > 0 ) and ( p < 1.0 ) ):
-            e = -p * math.log(p,2) - (1-p) * math.log(1-p,2)
-        return e
-
-    def CalcEntropy(self, rect):
-        area = rect.width * rect.height
-        a = 0.0
-        for o in self.domain.obstacles:
-            a = a + rect.CalculateOverlap(o)
-        p = a / area
-        return self.Entropy(p)
-
-    def Decompose(self, node):
-        cell = 'free'
-        r = node[0]
-        rx = r.x
-        ry = r.y
-        rwidth = r.width
-        rheight = r.height
-        area = rwidth * rheight
-
-        for o in self.domain.obstacles:
-            if ( o.CalculateOverlap(r) >= rwidth * rheight ):
-                cell = 'obstacle'
-                break
-            elif ( o.CalculateOverlap(r) > 0.0 ):
-                cell = 'mixed'
-                break
-
-        if ( cell == 'mixed'):
-            entropy = self.CalcEntropy(r)
-            igH = 0.0
-            hSplitTop = None
-            hSplitBottom = None
-            vSplitLeft = None
-            vSplitRight = None
-            if ( r.height / 2.0 > self.minimumSize):
-                hSplitTop = Rectangle(rx, ry + rheight/2.0, rwidth, rheight/2.0)
-                entHSplitTop = self.CalcEntropy(hSplitTop)
-                hSplitBottom = Rectangle(rx, ry, rwidth, rheight/2.0)
-                entHSplitBottom = self.CalcEntropy( hSplitBottom )
-
-                igH = entropy - ( r.width * r.height / 2.0 ) / area * entHSplitTop \
-                      - ( r.width * r.height / 2.0 ) / area * entHSplitBottom
-            igV = 0.0
-            if ( r.width / 2.0 > self.minimumSize ):
-                vSplitLeft = Rectangle(rx, ry, rwidth/2.0, rheight )
-                entVSplitLeft = self.CalcEntropy( vSplitLeft )
-                vSplitRight = Rectangle( rx + rwidth/2.0, ry, rwidth/2.0, rheight)
-                entVSplitRight = self.CalcEntropy( vSplitRight)
-                igV = entropy - ( r.width/2.0 * r.height ) / area * entVSplitLeft \
-                      - ( r.width/2.0 * r.height ) / area * entVSplitRight
-            children = []
-            if ( igH > igV ):
-                if ( igH > 0.0 ):
-                    if ( hSplitTop is not None ) and ( hSplitBottom is not None ):
-                        childTop = [ hSplitTop, 'unknown', [] ]
-                        childBottom = [hSplitBottom, 'unknown', [] ]
-                        children = [ childTop, childBottom]
-            else:
-                if ( igV > 0.0 ):
-                    if ( vSplitLeft is not None ) and ( vSplitRight is not None ):
-                        childLeft = [vSplitLeft, 'unknown', [] ]
-                        childRight = [ vSplitRight, 'unknown', [] ]
-                        children = [ childLeft, childRight ]
-            for c in children:
-                self.Decompose(c)
-            node[2] = children
-        node[1] = cell
-        return node
-
 def main( argv = None ):
     if ( argv == None ):
         argv = sys.argv[1:]
@@ -219,17 +143,23 @@ def main( argv = None ):
 
     for o in pp.obstacles:
         ax.add_patch(copy.copy(o.patch))
-    ip = plt.Rectangle((initial[0],initial[1]), 0.1, 0.1, facecolor='#ff0000')
+    ip = plt.Rectangle((initial[0],initial[1]), 1, 1, facecolor='#ff0000')
     ax.add_patch(ip)
 
+    goal= None
     for g in goals:
-        g = plt.Rectangle((g[0],g[1]), 0.1, 0.1, facecolor='#00ff00')
+        goal = g
+        g = plt.Rectangle((g[0],g[1]), 1, 1, facecolor='#00ff00')
         ax.add_patch(g)
-
-    bsp = BinarySpacePartitioning(pp, 0.2)
-    bsp.Draw(ax)
-    n = bsp.CountCells()
-    ax.set_title('BSP Decomposition\n{0} cells'.format(n))
+    start = timeit.default_timer()
+    spath = RRT.ExploreDomain(RRT(8),pp, initial, goal, 5000)
+    path = spath[0]
+    final = spath[1]
+    RRT.draw(RRT(0), plt, path, final)
+    stop = timeit.default_timer()
+    print("RRT Running Time: ", stop - start)
+    print("RRT Path Length : ", RRT.pathLen(RRT(0), final))
+    ax.set_title('RRT')
     plt.show()
 
 if ( __name__ == '__main__' ):

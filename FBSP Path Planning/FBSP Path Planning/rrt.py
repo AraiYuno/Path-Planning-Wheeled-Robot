@@ -1,81 +1,147 @@
+__author__ = 'Jacky Baltes <jacky@cs.umanitoba.ca>'
+
 import sys
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
 import numpy as np
 import math
+import copy
 import random
 from pathplanning import PathPlanningProblem, Rectangle
 
-def ExploreDomain( domain, initial, steps ):
-    log = np.zeros((steps,2))
-    pos = np.array(initial)
-    dd = 0.1
-    theta = 0.00/180.0 * math.pi
 
-    for i in range(steps):
-        newpos = pos + dd * np.array([dd * math.cos(theta), dd * math.sin(theta)])
-        r = Rectangle(newpos[0], newpos[1], 0.1, 0.1)
-        if ( newpos[0] >= 0.0 ) and ( newpos[0] < domain.width ) and ( newpos[1] >= 0.0 ) and ( newpos[1] < domain.height ):
-            if ( not domain.CheckOverlap( r ) ):
-                pos = newpos
+class Node():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.parent = None
 
-        theta = theta + random.uniform(-180.0/180.0 * math.pi, 180.0/180.0 * math.pi)
-        while( theta >= math.pi ):
-            theta = theta - 2 * math.pi
-        while( theta < - math.pi ):
-            theta = theta + 2 * math.pi
-        log[i,:] = pos
-    return log
 
-def main( argv = None ):
-    if ( argv == None ):
-        argv = sys.argv[1:]
+class RRT:
+    def __init__(self, v):
+        self.v = None
 
-    width = 10.0
-    height = 10.0
+    #this function will return the step length depending on the number of obstacles
+    def get_step_len(self, domain):
+        dd = 1
+        if len(domain.obstacles) >0 and len(domain.obstacles) <=12:
+            dd = 5
+        elif len(domain.obstacles) >12 and len(domain.obstacles) <=24:
+            dd = 4
+        elif len(domain.obstacles) >24 and len(domain.obstacles) <=36:
+            dd = 3
+        elif len(domain.obstacles) >36 and len(domain.obstacles) <=48:
+            dd = 2
+        elif len(domain.obstacles) >48:
+            dd = 1
 
-    pp = PathPlanningProblem( width, height, 5, 4.0, 4.0)
-    #pp.obstacles = [ Obstacle(0.0, 0.0, pp.width, pp.height / 2.2, '#555555' ) ]
-    pp.obstacles = []
-    initial, goals = pp.CreateProblemInstance()
+        return dd
 
-    fig = plt.figure()
-    ax = fig.add_subplot(1,2,1, aspect='equal')
-    ax.set_xlim(0.0, width)
-    ax.set_ylim(0.0, height)
+    def GetNearestListIndex(self, nodeList, rnd):
+        index = 0
+        min = 10000000
+        i = 0
+        for node in nodeList:
+            if math.sqrt((math.pow(node.x - rnd[0], 2)) + (math.pow(node.y - rnd[1], 2))) < min:
+                min = math.sqrt((math.pow(node.x - rnd[0], 2)) + (math.pow(node.y - rnd[1], 2)))
+                index = i
+            i = i + 1
+        return index
 
-    for o in pp.obstacles:
-        ax.add_patch(o.patch)
+    def ExploreDomain(self, domain, initial, goal, steps):
+        init = Node(initial[0], initial[1])
+        g = Node(goal[0], goal[1])
+        dd = self.get_step_len(domain)
+        newpos = None
+        nodeList = [init]
+        while True:
+            if steps == 0:
+                break
+            if random.randint(0, 100) > 5:
+                rnd = [random.uniform(0, 100), random.uniform(0, 100)]
+            else:
+                rnd = [g.x, g.y]
 
-#    ip = plt.Rectangle((initial[0],initial[1]), 0.1, 0.1, facecolor='#ff0000')
-#    ax.add_patch(ip)
+            nind = self.GetNearestListIndex(nodeList, rnd)
+            nearestNode = nodeList[nind]
+            theta = math.atan2(rnd[1] - nearestNode.y, rnd[0] - nearestNode.x)
+            newNode = Node((nearestNode.x), (nearestNode.y))
+            newNode.parent = nearestNode
+            newpos = Node((newNode.x + dd * math.cos(theta)), (newNode.y + dd * math.sin(theta)))
+            newpos.parent = newNode
+            xp = newNode.x
+            yp = newNode.y
+            over = False
+            for i in range(dd):
+                xp = xp + math.cos(theta)
+                yp = yp + math.sin(theta)
+                rec = Rectangle(xp, yp, 1, 1)
+                if domain.CheckOverlap(rec):
+                    over = True
+                    break
 
-    for g in goals:
-        g = plt.Rectangle((g[0],g[1]), 0.1, 0.1, facecolor='#00ff00')
-#        ax.add_patch(g)
+            r = Rectangle(newpos.x, newpos.y, 1, 1)
 
-    path = ExploreDomain( pp, initial, 50000 )
-    ax.set_title('Vacuuming Domain')
+            if ( newpos.x >= 0.0 ) and ( newpos.x < domain.width ) and ( newpos.y >= 0.0 ) and ( newpos.y < domain.height ):
 
-    plt.plot(path[:,0], path[:,1], 'b-')
+                if (not over and not domain.CheckOverlap( r )):
+                    steps = steps - 1
+                    dx = newpos.x - g.x
+                    dy = newpos.y - g.y
+                    d = math.sqrt(dx * dx + dy * dy)
+                    if d <= dd:
+                        newpos = Node(g.x, g.y)
+                        newpos.parent = newNode
+                        nodeList.append(newpos)
+                        break
+                    nodeList.append(newpos)
 
-    ax = fig.add_subplot(1,2,2)
-#    x,y,z = pp.CalculateCoverage(path, 0.5)
+        finalpath = []
+        lastIndex = len(nodeList) - 1
+        node = nodeList[lastIndex]
+        while node.parent is not None:
+            finalpath.append(node)
+            node = node.parent
+        finalpath.append(init)
 
-#    X,Y = np.meshgrid(x,y)
-#    Z = z
-#    ax.plot_surface(X,Y,Z, rstride=1, cstride=1, cmap=cm.coolwarm)
+        result = [nodeList, finalpath]
+        return result
 
-    heatmap, x, y = np.histogram2d(path[:,0], path[:,1], bins = 50, range=[[0.0, pp.width], [0.0, pp.height]])
-    coverage = float( np.count_nonzero(heatmap) ) / float( len(heatmap) * len(heatmap[0]))
-    extent = [ x[0], x[-1], y[0], y[-1]]
-    ax.set_title('Random Walk\nCoverage {0}'.format(coverage))
-    plt.imshow(np.rot90(heatmap))
-    plt.colorbar()
 
-    plt.show()
+    def draw(self, plt, path, final):
+        s = [4 for n in range(len(path))]
+        lent = len(path) - 1
 
-if ( __name__ == '__main__' ):
-    main()
+        while lent >= 0:
+            node = path[lent]
+            if node.parent is not None:
+                par = node.parent
+                all = plt.plot([node.x, par.x], [node.y, par.y])
+                plt.setp(all, color='b', linewidth=0.75)
+            else:
+                plt.scatter([node.x], [node.y], color='b', s=s)
+            lent = lent - 1
 
+        lent = len(final) - 1
+
+        while lent >= 0:
+            node = final[lent]
+            if node.parent is not None:
+                par = node.parent
+                fin = plt.plot([node.x, par.x], [node.y, par.y])
+                plt.setp(fin, color='r', linewidth=0.75)
+            else:
+                plt.scatter([node.x], [node.y], color='r', s=s)
+            lent = lent - 1
+
+    def pathLen(self, path):
+        leng = 0
+        plen = len(path)-1
+        node = path[plen]
+        while plen >= 0:
+            node = path[plen]
+            if node.parent is not None:
+                par = node.parent
+                leng = leng + math.sqrt(math.pow((node.x-par.x), 2) + math.pow((node.y-par.y), 2))
+            plen = plen - 1
+        return leng
