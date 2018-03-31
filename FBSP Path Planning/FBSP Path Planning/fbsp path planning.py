@@ -31,13 +31,8 @@ class CellDecomposition:
                 color = '#5050ff'
                 r.set_fill(True)
                 r.set_facecolor(color)
-            #elif node[1] == 'path':        # Fill the path with a certain colour
-            #   color = 'ffffff'
-            #   r.set_fill(True)
-            #   r.set_facecolor(color)
             else:
                 print("Error: don't know how to draw cell of type", node[1])
-            #print('Draw node', node)
             ax.add_patch(r)
             for c in node[2]:
                 self.Draw(ax, c)
@@ -106,7 +101,6 @@ def main( argv = None ):
     height = 100.0
 
     pp = PathPlanningProblem( width, height, 15, 30, 30)
-    #pp.obstacles = [ Obstacle(0.0, 0.0, pp.width, pp.height / 2.2, '#555555' ) ]
     initial, goals = pp.CreateProblemInstance()
 
     fig = plt.figure()

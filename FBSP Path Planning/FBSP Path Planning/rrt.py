@@ -1,11 +1,4 @@
-__author__ = 'Jacky Baltes <jacky@cs.umanitoba.ca>'
-
-import sys
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
 import math
-import copy
 import random
 from pathplanning import PathPlanningProblem, Rectangle
 
