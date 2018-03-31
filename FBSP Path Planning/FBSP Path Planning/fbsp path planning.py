@@ -1,6 +1,5 @@
 import sys
 import matplotlib.pyplot as plt
-import math
 import copy
 import timeit
 from pathplanning import PathPlanningProblem, Rectangle
@@ -8,40 +7,49 @@ from aStar import AStarSearch
 from rrt import RRT
 
 
+# =================================================================================================
+#  cCellDecomposition( domain, minimumSize )
+#  - Super class CellDecomposition for QuadTree and BST
+# =================================================================================================
 class CellDecomposition:
     def __init__(self, domain, minimumSize):
         self.domain = domain
         self.minimumSize = minimumSize
         self.root = [Rectangle(0.0, 0.0, domain.width, domain.height), 'unknown', []]
 
-    def Draw(self, ax, node = None):
-            if node == None:
-                node = self.root
-            r = plt.Rectangle((node[0].x, node[0].y), node[0].width, node[0].height, fill=False, facecolor=None, alpha=0.5)
-            if node[1] == 'mixed':
-                color = '#5080ff'
-                if node[2] == []:
-                    r.set_fill(True)
-                    r.set_facecolor(color)
-            elif node[1] == 'free':
-                color = '#ffff00'
+    def Draw(self, ax, node=None):
+        if node == None:
+            node = self.root
+        r = plt.Rectangle((node[0].x, node[0].y), node[0].width, node[0].height, fill=False, facecolor=None, alpha=0.5)
+        if node[1] == 'mixed':
+            color = '#5080ff'
+            if node[2] == []:
                 r.set_fill(True)
                 r.set_facecolor(color)
-            elif node[1] == 'obstacle':
-                color = '#5050ff'
-                r.set_fill(True)
-                r.set_facecolor(color)
-            else:
-                print("Error: don't know how to draw cell of type", node[1])
-            ax.add_patch(r)
-            for c in node[2]:
-                self.Draw(ax, c)
+        elif node[1] == 'free':
+            color = '#ffff00'
+            r.set_fill(True)
+            r.set_facecolor(color)
+        elif node[1] == 'obstacle':
+            color = '#5050ff'
+            r.set_fill(True)
+            r.set_facecolor(color)
+        # elif node[1] == 'path':        # Fill the path with a certain colour
+        #   color = 'ffffff'
+        #   r.set_fill(True)
+        #   r.set_facecolor(color)
+        else:
+            print("Error: don't know how to draw cell of type", node[1])
+        # print('Draw node', node)
+        ax.add_patch(r)
+        for c in node[2]:
+            self.Draw(ax, c)
 
-    def CountCells(self, node = None ):
-        if ( node is None ):
+    def CountCells(self, node=None):
+        if node is None:
             node = self.root
         sum = 0
-        if ( node[2] != [] ):
+        if node[2] != []:
             sum = 0
             for c in node[2]:
                 sum = sum + self.CountCells(c)
@@ -49,6 +57,12 @@ class CellDecomposition:
             sum = 1
         return sum
 
+
+# =================================================================================================
+#  QuadTreeDecomposition( domain, minimumSize, initial, goals )
+#  - Basic quadtree that divides every node quarterly if is is a mixed cell.
+#  - Initial and goal cells are also divided quarterly if they exist in the mixed cell.
+# =================================================================================================
 class QuadTreeDecomposition(CellDecomposition):
     def __init__(self, domain, minimumSize, initial, goals):
         self.initialCell = initial
@@ -68,13 +82,13 @@ class QuadTreeDecomposition(CellDecomposition):
         initialCell = Rectangle(self.initialCell[0], self.initialCell[1], 0.1, 0.1)
         goalCell = Rectangle(self.goalsCell[0][0], self.goalsCell[0][1], 0.1, 0.1)
         for o in self.domain.obstacles:
-            if ( o.CalculateOverlap(r) >= rwidth * rheight ):
+            if o.CalculateOverlap(r) >= rwidth * rheight:
                 cell = 'obstacle'
                 break
-            elif ( o.CalculateOverlap(r) > 0.0 ):
+            elif o.CalculateOverlap(r) > 0.0:
                 cell = 'mixed'
                 break
-        if ( cell == 'mixed'):
+        if cell == 'mixed':
             if (((rwidth / 2.0 > self.minimumSize) and (rheight / 2.0 > self.minimumSize))
                     or goalCell.CalculateOverlap(r) > 0.0 or initialCell.CalculateOverlap(r) > 0.0):
                 childt1 = [Rectangle(rx, ry, rwidth/2.0, rheight/2.0), 'unknown', [] ]
@@ -93,6 +107,10 @@ class QuadTreeDecomposition(CellDecomposition):
         return node
 
 
+# =================================================================================================
+#  main()
+#   - A main function that starts and draws the results of A* and RRT path finding algorithm.
+# =================================================================================================
 def main( argv = None ):
     if ( argv == None ):
         argv = sys.argv[1:]
@@ -101,6 +119,7 @@ def main( argv = None ):
     height = 100.0
 
     pp = PathPlanningProblem( width, height, 15, 30, 30)
+    #pp.obstacles = [ Obstacle(0.0, 0.0, pp.width, pp.height / 2.2, '#555555' ) ]
     initial, goals = pp.CreateProblemInstance()
 
     fig = plt.figure()

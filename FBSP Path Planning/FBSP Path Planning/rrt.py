@@ -14,7 +14,10 @@ class RRT:
     def __init__(self, v):
         self.v = None
 
-    #this function will return the step length depending on the number of obstacles
+    # =================================================================================================
+    #  get_step_len( domain )
+    #  - this function will return the step length depending on the number of obstacles
+    # =================================================================================================
     def get_step_len(self, domain):
         dd = 1
         if len(domain.obstacles) >0 and len(domain.obstacles) <=12:

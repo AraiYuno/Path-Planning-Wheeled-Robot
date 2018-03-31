@@ -2,6 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 
+
+# =================================================================================================
+#  Rectangle( x, y, width, height)
+#  - A rectangle that represents a cell on the board.
+# =================================================================================================
 class Rectangle:
     def __init__(self, x, y, width, height):
         self.x = x
@@ -38,13 +43,25 @@ class Rectangle:
         #print('CalculateOverlap returns {0}'.format(overlap))
         return overlap
 
+
+# =================================================================================================
+#  Obstacle( x, y, width, height, colour)
+#  - An obstacle object that blocks the path on the board
+# =================================================================================================
 class Obstacle(Rectangle):
     def __init__(self, x, y, width, height, color = None ):
         super().__init__( x, y, width, height)
         self.color = color
-        if ( color is not None ):
+        if color is not None:
             self.patch = plt.Rectangle((self.x, self.y), self.width, self.height, facecolor=color, edgecolor='#202020')
 
+
+# =================================================================================================
+#  PathPlanningProblem( width, height, onum, owidth, oheight)
+#  - Creates a problem that can be used in path finding.
+#  - Creates obstacles, initial cell and goal cell.
+#  - Contains a couple of helper functions such as checkOverlap
+# =================================================================================================
 class PathPlanningProblem:
     def __init__(self, width, height, onum, owidth, oheight):
         self.width = width
@@ -54,50 +71,50 @@ class PathPlanningProblem:
     def CreateObstacles(self, onum, owidth, oheight):
         obstacles = []
 
-        while( len(obstacles) < onum ):
+        while len(obstacles) < onum:
             x = random.uniform(0.0, self.width)
             y = random.uniform(0.0, self.height)
             w = random.uniform(0.1, owidth)
             h = random.uniform(0.1, oheight)
-            if ( x + w ) > self.width:
+            if x + w > self.width:
                 w = self.width - x
-            if ( y + h ) > self.height:
+            if y + h > self.height:
                 h = self.height - y
             obs = Obstacle(x, y, w, h, '#808080')
             found = False
             for o in obstacles:
-                if ( o.CalculateOverlap(obs) > 0.0 ):
+                if o.CalculateOverlap(obs) > 0.0 :
                     found = True
                     break
-            if ( not found ):
+            if not found:
                 obstacles = obstacles + [obs]
         return obstacles
 
     def CreateProblemInstance(self):
         found = False
-        while (not found ):
+        while not found:
             ix = random.uniform(0.0, self.width)
             iy = random.uniform(0.0, self.height)
 
             oinitial = Obstacle(ix, iy, 0.1, 0.1 )
             found = True
             for obs in self.obstacles:
-                if ( oinitial.CalculateOverlap( obs ) > 0.0 ):
+                if oinitial.CalculateOverlap( obs ) > 0.0:
                     found = False
                     break
 
         found = False
-        while (not found ):
+        while not found:
             gx = random.uniform(0.0, self.width)
             gy = random.uniform(0.0, self.height)
 
             ogoal = Obstacle(gx, gy, 0.1, 0.1 )
             found = True
             for obs in self.obstacles:
-                if ( ogoal.CalculateOverlap( obs ) > 0.0 ):
+                if ogoal.CalculateOverlap( obs ) > 0.0:
                     found = False
                     break
-            if (oinitial.CalculateOverlap(ogoal) > 0.0):
+            if oinitial.CalculateOverlap(ogoal) > 0.0:
                 found = False
 
         return((ix,iy), [ (gx, gy) ])
@@ -105,7 +122,7 @@ class PathPlanningProblem:
     def CheckOverlap(self, r):
         overlap = False
         for o in self.obstacles:
-            if (r.CalculateOverlap(o) > 0 ):
+            if r.CalculateOverlap(o) > 0:
                 overlap = True
                 break
         return overlap
@@ -118,4 +135,4 @@ class PathPlanningProblem:
             i = int(p[1]/dim)
             j = int(p[0]/dim)
             counts[j][i] = counts[j][i] + 1
-        return (x,y,counts)
+        return ( x, y, counts )
