@@ -92,7 +92,7 @@ class AStarSearch:
         dest_y_center = dest[0].y + (dest[0].height) / 2
 
         g_cost = math.sqrt(math.pow(dest_x_center-src_x_center, 2) + math.pow(dest_y_center-src_y_center, 2) )
-        return 0.5*g_cost
+        return 0.7*g_cost
 
 
     # =================================================================================================
