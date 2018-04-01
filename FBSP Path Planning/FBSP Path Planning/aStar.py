@@ -66,9 +66,8 @@ class AStarSearch:
                     neighbour_nodes[i].append(curr)          # node[5] = parent node
                     curr[2].append(neighbour_nodes[i])
                     open_nodes.append(neighbour_nodes[i])
-
                 # if the neighbour already exists in the open_nodes list, then we update the cost
-                if self.exists(open_nodes, neighbour_nodes[i]) != -9999:
+                elif self.exists(open_nodes, neighbour_nodes[i]) != -9999:
                     new_cost = curr[3] + self.calculate_g_cost(curr, neighbour_nodes[i])
                     if new_cost < neighbour_nodes[i][3]:
                         neighbour_nodes[i][3] = new_cost
@@ -93,7 +92,7 @@ class AStarSearch:
         dest_y_center = dest[0].y + (dest[0].height) / 2
 
         g_cost = math.sqrt(math.pow(dest_x_center-src_x_center, 2) + math.pow(dest_y_center-src_y_center, 2) )
-        return g_cost
+        return 0.5*g_cost
 
 
     # =================================================================================================
