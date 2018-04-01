@@ -118,7 +118,7 @@ def main( argv = None ):
     width = 100.0
     height = 100.0
 
-    pp = PathPlanningProblem( width, height, 15, 30, 30)
+    pp = PathPlanningProblem( width, height, 20, 40, 40)
     #pp.obstacles = [ Obstacle(0.0, 0.0, pp.width, pp.height / 2.2, '#555555' ) ]
     initial, goals = pp.CreateProblemInstance()
 
@@ -168,10 +168,13 @@ def main( argv = None ):
     spath = RRT.ExploreDomain(RRT(8),pp, initial, goal, 5000)
     path = spath[0]
     final = spath[1]
+    if len(final) == 0:
+        print("No path found")
     RRT.draw(RRT(0), plt, path, final)
     stop = timeit.default_timer()
     print("RRT Running Time: ", stop - start)
-    print("RRT Path Length : ", RRT.pathLen(RRT(0), final))
+    if len(final) > 0:
+        print("RRT Path Length : ", RRT.pathLen(RRT(0), final))
     ax.set_title('RRT')
     plt.show()
 

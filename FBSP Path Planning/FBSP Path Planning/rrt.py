@@ -33,7 +33,7 @@ class RRT:
 
         return dd
 
-    def GetNearestListIndex(self, nodeList, rnd):
+    def getNearNeighbour(self, nodeList, rnd):
         index = 0
         min = 10000000
         i = 0
@@ -58,7 +58,7 @@ class RRT:
             else:
                 rnd = [g.x, g.y]
 
-            nind = self.GetNearestListIndex(nodeList, rnd)
+            nind = self.getNearNeighbour(nodeList, rnd)
             nearestNode = nodeList[nind]
             theta = math.atan2(rnd[1] - nearestNode.y, rnd[0] - nearestNode.x)
             newNode = Node((nearestNode.x), (nearestNode.y))
@@ -95,10 +95,11 @@ class RRT:
         finalpath = []
         lastIndex = len(nodeList) - 1
         node = nodeList[lastIndex]
-        while node.parent is not None:
-            finalpath.append(node)
-            node = node.parent
-        finalpath.append(init)
+        if node.x == g.x and node.y == g.y:
+            while node.parent is not None:
+                finalpath.append(node)
+                node = node.parent
+            finalpath.append(init)
 
         result = [nodeList, finalpath]
         return result
