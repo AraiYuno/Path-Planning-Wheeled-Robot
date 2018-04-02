@@ -118,8 +118,7 @@ def main( argv = None ):
     width = 100.0
     height = 100.0
 
-    pp = PathPlanningProblem( width, height, 20, 40, 40)
-    #pp.obstacles = [ Obstacle(0.0, 0.0, pp.width, pp.height / 2.2, '#555555' ) ]
+    pp = PathPlanningProblem( width, height, 60, 40, 40)
     initial, goals = pp.CreateProblemInstance()
 
     fig = plt.figure()

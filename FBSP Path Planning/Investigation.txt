@@ -1,0 +1,153 @@
+== Experimental Evaluation == 
+ - This text file includes:
+	- a table that summerises the outcome produced by the program.
+  	- sets of all the trials ran for creating the table.
+ 	- preconditions for the investigation.
+	- a description of extra feature(s) included in the program.
+
+Group 7
+  Kyle Seokjin Ahn     7794966
+  Vighnesh Revanan     7780126
+  Goutham Dhannapuneni 7814509
+
+** Notice ** 
+ Please notice that all the figures are included in ./Figure directory to help the marker understanding the investigation.
+
+===================================
+|Peformance Comparison Using Table|
+===================================
+
+-- Precondition -- 
+ 1. In order to compare the performance more precisely, we have decided to use the same board(environment) for both RRT and     A*. It is quite straightforward as to why we have decided to do that. Comparing the performance of these two algorithms     on two different boards every time is quite meaningless as the peformance could be quite "random" depending on the     randomly generated board each time.
+ 2. Please take a look at figure "domain_10_1.PNG". As you see we have RRT and A* running on the same boards for better     comparison.
+ 3. For the performance comparison table below, we have ran both algorithms 3 times for each domain size to calcualte the         average for better understanding. 
+ 4. All the trials for each domain size are captured and recorded in './Figure' directory for your reference. It should help     your understanding as to why running time and path lengths are different for every trial. -> due to the different boards.
+
+
+========================
+|Performance Evaluation|
+========================
+
+========================================================================================================
+| Domain size       |       10         |         20        |        40          |         60           |
+| A* Running time   |     11.18s       |       28.68s      |      155.69s       |       573.44s        |
+| A* Path Length    |     84.00cm      |       70.84cm     |       76.50cm      |       100.58cm       |
+| RRT Running time  |      0.15s       |        0.11s      |        1.83s       |         8.06s        |
+| RRT Path Length   |    116.78cm      |       89.83cm     |      108.57cm      |       161.22cm       |
+========================================================================================================
+ - As domain size increases, the running time for both algorithms increases on average.
+ - Path length of A* < Path length of RRT.
+ - Running time of A* > Running time of RRT.
+
+1. Performance of A*
+ - Running Time -
+ As discussed in the class, it was easy to expect that the running time of A* algorithm would be relatively longer than RRT because it first has to make a quadtree, then it has to collect each free leaf node from the quadtree, finally it also has to perform A* Algorithm to find the optimal path, whose running time is heavily dependent on the number of nodes generated. Furthermore, we have to calculate g and h cost for every node and update it occasionally, and this takes a lot of time for tens of thousands nodes. As you may observe in the table above, the running time of A* algorithm is much longer than RRT algorithm. Also, it increases as we put more obstacles (domain size) on the board. Longer running time is an obvious downside of A* algorithm.
+
+ - Path Length -
+ On the other hand, the path length found by A* tends to be much shorter (better) than the path length by RRT. As we are dividing the board into smaller cells using quadtree, it allows A* to find more straight and direct path to the goal. Also, the manhattan distance plays a huge role in finding the optimal path to the goal. We cannot really compare the path lengths amongst different domain sizes because the path length should really depend on the position of initial and goal cells, which are perfectly random.
+
+2. Performance of RRT.
+ - Running Time -
+ As discussed in the class, it was easy to expect that the running time of RRT would be much faster than A* because RRT simply picks a sample S, and tries to generate a neighbour N by using its biases such as bias towards the goal and empty space. It does not need to go through tidious steps of calculating the manhattan distance or creating a whole quadtree. This allows RRT to explore the possible options much faster than A*. Shorter running time is a clear advantage of using RRT algorithm.
+ 
+ - Path Length -
+ On the other hand, the path length found by RRT tends to be longer (worse) than the path length found by A* algorithm. As RRT is pretty random at generating the next node, it does not guarantee an optimal path. Also, when the domain size is large (60), it sometimes ends up finding a really bad path. If you look at '/Figure/domain_60_1.PNG', you may observe that RRT does not find the optimal path, whereas A* does find an optimal path. Thus, we can conclude that the path length found by RRT is typically worse than the path length found by A*.
+
+3. Overall Insight
+ From our investigation, we were able to conclude that both RRT and A* algorithms have their own advantages and disadvantages. The advantage for using RRT would be the faster running time. It is typically much faster than A* algorithm. However, its downside is at the path length, which is not as optimal as the path length found by A*. On the other hand, the advantage for using A* would be the path length which is much shorter (better) than the path length found by RRT. But, its downside would be the tideous time complexity that A* bears due to the computation that it needs to perform for the manhattan distance, stack, quadtree decomposition and etc.
+
+
+
+
+========================
+|    Extra Features    |
+========================
+ 1. In order to satisfy the part 2 of the assignment 3, which specifies "initial and goal position are not inside of an obstacle", the program runs the quadtree decomposition on the initial and goal positions until they are entirely in the free cell.
+
+ 2. In order to optimise the running time of A* algorithm, the program intentionally makes G cost relatively smaller than H cost in order to ensure that the total f cost becomes smaller as it gets closer to the goal.
+
+
+
+
+-------------------------------------------------------------
+@@ Outcome of All the Trials Used in Table @@
+Time is in seconds and length is in cm.
+-------------------------------------------------------------
+@@ Domain Size 10 @@      Reference: '/Figure/domain_10_1.PNG'
+1st Trial
+ A* Running Time:  3.57
+ A* Path Length :  84.85
+ RRT Running Time:  0.07
+ RRT Path Length :  96.81
+
+2nd Trial	       	Reference: '/Figure/domain_10_2.PNG'
+ A* Running Time:  20.44
+ A* Path Length :  58.81
+ RRT Running Time:  0.19
+ RRT Path Length :  129.92
+
+3rd trial		Reference: '/Figure/domain_10_3.PNG'
+ A* Running Time:  9.53
+ A* Path Length :  108.34
+ RRT Running Time:  0.19
+ RRT Path Length :  123.59
+---------------------------------------------------------------
+
+@@ Domain Size 20 @@
+1st Trial		Reference: '/Figure/domain_20_1.PNG'
+ A* Running Time:  0.22
+ A* Path Length :  52.38
+ RRT Running Time:  0.07
+ RRT Path Length :  79.85
+
+2nd Trial		Reference: '/Figure/domain_20_2.PNG'
+ A* Running Time:  15.08
+ A* Path Length :  86.94
+ RRT Running Time:  0.19
+ RRT Path Length :  100.06
+
+3rd Trial		Reference: '/Figure/domain_20_3.PNG'
+ A* Running Time:  70.74
+ A* Path Length :  73.21
+ RRT Running Time:  0.08
+ RRT Path Length :  89.57
+------------------------------------------------------------------
+
+@@ Domain Size 40 @@
+1st Trial		Reference: '/Figure/domain_40_1.PNG'
+ A* Running Time:  179.01
+ A* Path Length :  61.23
+ RRT Running Time:  2.40
+ RRT Path Length :  88.68
+
+2nd Trial		Reference: '/Figure/domain_40_2.PNG'
+ A* Running Time:  282.25
+ A* Path Length :  117.71
+ RRT Running Time:  1.41
+ RRT Path Length :  180.53
+
+3rd Trial		Reference: '/Figure/domain_40_3.PNG'
+ A* Running Time:  5.81
+ A* Path Length :  50.57
+ RRT Running Time:  1.68
+ RRT Path Length :  56.51
+------------------------------------------------------------------
+
+@@ Domain Size 60 @@
+1st Trial		Reference: '/Figure/domain_60_1.PNG'
+ A* Running Time:  1197.30
+ A* Path Length :  133.59
+ RRT Running Time:  3.30
+ RRT Path Length :  189.43
+
+2nd Trial		Reference: '/Figure/domain_60_2.PNG'
+ A* Running Time:  168.73
+ A* Path Length :  78.37
+ RRT Running Time:  18.16
+ RRT Path Length :  145.04
+
+3rd Trial		Reference: '/Figure/domain_60_3.PNG'
+ A* Running Time:  354.28
+ A* Path Length :  89.77
+ RRT Running Time:  2.72
+ RRT Path Length :  149.19
